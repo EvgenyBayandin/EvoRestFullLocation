@@ -20,7 +20,7 @@ public class LocationController {
     @Autowired
     private LocationRepository repository;
 
-    @GetMapping("/")
+    @GetMapping
     public Iterable<Location> findAll() {
         return repository.findAll();
     }
