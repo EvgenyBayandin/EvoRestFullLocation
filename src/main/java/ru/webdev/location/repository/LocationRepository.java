@@ -9,4 +9,7 @@ import ru.webdev.location.model.Location;
 public interface LocationRepository extends CrudRepository<Location, Integer> {
 
     Optional<Location> findByTitle(String title);
+
+    Optional<Location> findByLocalNamesContaining(String title);
+
 }
