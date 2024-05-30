@@ -10,6 +10,6 @@ public interface LocationRepository extends CrudRepository<Location, Integer> {
 
     Optional<Location> findByTitle(String title);
 
-    Optional<Location> findByLocalNamesContaining(String title);
+    Optional<Location> findByLocalNamesContainingIgnoreCase(String title);
 
 }
