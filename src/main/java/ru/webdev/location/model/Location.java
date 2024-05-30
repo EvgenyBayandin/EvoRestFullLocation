@@ -22,7 +22,19 @@ public class Location {
     @NonNull
     private String title;
 
+    @NonNull
+    private Float latitude;
+
+    @NonNull
+    private Float longitude;
+
     public Location(@NonNull String title) {
         this.title = title;
+    }
+
+    public Location(@NonNull String title, @NonNull Float latitude, @NonNull Float longitude) {
+        this.title = title;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }
