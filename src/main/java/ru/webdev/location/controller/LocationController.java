@@ -3,6 +3,8 @@ package ru.webdev.location.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +31,7 @@ public class LocationController {
     @Autowired
     private LocationRepository repository;
 
-    RestTemplate restTemplate= new RestTemplate();
+    RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -46,31 +48,37 @@ public class LocationController {
 
     @PostMapping
     public ResponseEntity<Location> save(@RequestBody Location location) throws JsonProcessingException {
-        // Проверяем, существует ли объект в базе данных
-        if (repository.findByTitle(location.getTitle()).isPresent()) {
-            // Возвращаем ошибку, если объект уже существует
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-
-        // Запрос к внешнему сервису для получения координат
-        String url = geoUrl + location.getTitle() + "&limit=" + geoLimit + "&appid=" + geoKey;
+        String url = geoUrl + location.getName() + "&limit=" + geoLimit + "&appid=" + geoKey;
         String jsonResponse = restTemplate.getForObject(url, String.class);
 
         // Распарсим ответ
         JsonNode rootNode = objectMapper.readTree(jsonResponse);
-        // Получаем первый элемент
-        JsonNode locationNode = rootNode.get(0);
+        if (rootNode.isArray() && rootNode.size() > 0) {
+            JsonNode locationNode = rootNode.get(0);
 
-        // Извлечем координаты
-        Float latitude = locationNode.get("lat").floatValue();
-        Float longitude = locationNode.get("lon").floatValue();
+            String name = locationNode.get("name").asText();
+            // Вернем координаты и локальные названия если объект уже существует, иначе создаем новый объект
+            Optional<Location> existingLocation = repository.findByNameIgnoreCase(name);
+            if (existingLocation.isPresent()) {
+                return new ResponseEntity(existingLocation, HttpStatus.OK);
+            }
 
-        // Сохраняем объект в репозиторий
-        Location newLocation  = new Location(location.getTitle(), latitude, longitude);
-        repository.save(newLocation);
+            Float latitude = locationNode.get("lat").floatValue();
+            Float longitude = locationNode.get("lon").floatValue();
+            JsonNode localNamesNode = locationNode.get("local_names");
+            List<String> localNames = new ArrayList<>();
+            localNamesNode.fieldNames().forEachRemaining(fieldName -> {
+                String localName = localNamesNode.get(fieldName).textValue();
+                localNames.add(localName);
+            });
 
-        // Возвращаем успешный ответ с созданным объектом
-        return new ResponseEntity<>(newLocation, HttpStatus.CREATED);
+            Location newLocation = new Location(name, latitude, longitude);
+            newLocation.setLocalNames(localNames);
+            repository.save(newLocation);
+
+            return new ResponseEntity<>(newLocation, HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
-
 }
