@@ -8,8 +8,6 @@ import ru.webdev.location.model.Location;
 @Repository
 public interface LocationRepository extends CrudRepository<Location, Integer> {
 
-    Optional<Location> findByTitle(String title);
-
-    Optional<Location> findByLocalNamesContainingIgnoreCase(String title);
+    Optional<Location> findByNameIgnoreCase(String name);
 
 }
