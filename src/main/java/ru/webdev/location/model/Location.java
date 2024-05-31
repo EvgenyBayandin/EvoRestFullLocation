@@ -4,6 +4,8 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -15,6 +17,7 @@ import lombok.NonNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name"})})
 public class Location {
 
     @Id
@@ -22,7 +25,7 @@ public class Location {
     private int id;
 
     @NonNull
-    private String title;
+    private String name;
 
     @ElementCollection
     private List<String> localNames = new ArrayList<>();
@@ -33,14 +36,14 @@ public class Location {
     @NonNull
     private Float longitude;
 
-    public Location(@NonNull String title) {
-        this.title = title;
-    }
 
-    public Location(@NonNull String title, @NonNull Float latitude, @NonNull Float longitude, @NonNull List<String> localNames) {
-        this.title = title;
+    public Location(@NonNull String name, @NonNull Float latitude, @NonNull Float longitude) {
+        this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.localNames  = localNames;
+    }
+
+    public Location(@NonNull List<String> localNames) {
+        this.localNames = localNames;
     }
 }
